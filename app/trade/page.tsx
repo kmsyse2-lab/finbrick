@@ -9,6 +9,7 @@ import HoldingCard from "../components/HoldingCard";
 import AccountCard from "../components/AccountCard";
 import TradePanel from "../components/TradePanel";
 import TransactionHistory from "../components/TransactionHistory";
+import StockSelector from "../components/StockSelector";
 
 
 type Transaction = {
@@ -29,24 +30,51 @@ type Transaction = {
 
 
 
-export default function TradePage() {
+export default function TradePage(){
 
 
-  const [balance,setBalance] = useState(10000000);
-
-
-  const [quantity,setQuantity] = useState(0);
-
-
-  const [avgPrice,setAvgPrice] = useState(0);
+  const [balance,setBalance] =
+    useState(10000000);
 
 
 
-  const [transactions,setTransactions] = useState<Transaction[]>([]);
+  const [symbol,setSymbol] =
+    useState("NASDAQ:AAPL");
 
 
 
-  const currentPrice = 185;
+  const prices:any = {
+
+    "NASDAQ:AAPL":185,
+
+    "NASDAQ:TSLA":250,
+
+    "NASDAQ:NVDA":170
+
+  };
+
+
+
+  const currentPrice =
+    prices[symbol];
+
+
+
+
+  const [quantity,setQuantity] =
+    useState(0);
+
+
+
+  const [avgPrice,setAvgPrice] =
+    useState(0);
+
+
+
+  const [transactions,setTransactions] =
+    useState<Transaction[]>([]);
+
+
 
 
 
@@ -57,14 +85,14 @@ export default function TradePage() {
 
     amount:number
 
-  ) => {
+  )=>{
 
 
-    const newTransaction:Transaction = {
+    const data:Transaction={
 
       id:Date.now(),
 
-      symbol:"AAPL",
+      symbol,
 
       type,
 
@@ -77,13 +105,15 @@ export default function TradePage() {
     };
 
 
+
     setTransactions((prev)=>[
 
-      newTransaction,
+      data,
 
       ...prev
 
     ]);
+
 
   };
 
@@ -92,19 +122,24 @@ export default function TradePage() {
 
 
 
-  const handleBuy = () => {
+
+
+  const handleBuy = ()=>{
 
 
     const cost =
+
       currentPrice *
+
       1 *
+
       1400;
 
 
 
     if(balance < cost){
 
-      alert("잔액이 부족합니다.");
+      alert("잔액 부족");
 
       return;
 
@@ -113,9 +148,11 @@ export default function TradePage() {
 
 
 
-    const totalValue =
+    const total =
 
-      avgPrice * quantity
+      avgPrice *
+
+      quantity
 
       +
 
@@ -123,34 +160,52 @@ export default function TradePage() {
 
 
 
-    const newQuantity = quantity + 1;
+    const newQuantity =
+
+      quantity + 1;
 
 
 
-    const newAvgPrice =
+    const newAvg =
 
-      totalValue /
+      total /
 
       newQuantity;
 
 
 
 
-    setBalance(balance-cost);
+    setBalance(
+
+      balance - cost
+
+    );
 
 
 
-    setQuantity(newQuantity);
+    setQuantity(
+
+      newQuantity
+
+    );
 
 
 
-    setAvgPrice(newAvgPrice);
+    setAvgPrice(
+
+      newAvg
+
+    );
+
 
 
 
     addTransaction(
+
       "BUY",
+
       1
+
     );
 
 
@@ -162,12 +217,13 @@ export default function TradePage() {
 
 
 
-  const handleSell = () => {
+
+  const handleSell = ()=>{
 
 
-    if(quantity <=0){
+    if(quantity <= 0){
 
-      alert("보유 주식이 없습니다.");
+      alert("보유 주식 없음");
 
       return;
 
@@ -186,7 +242,12 @@ export default function TradePage() {
 
 
 
-    setBalance(balance+money);
+
+    setBalance(
+
+      balance + money
+
+    );
 
 
 
@@ -208,6 +269,7 @@ export default function TradePage() {
 
 
   };
+
 
 
 
@@ -247,6 +309,19 @@ export default function TradePage() {
 
 
 
+      <StockSelector
+
+        symbol={symbol}
+
+        setSymbol={setSymbol}
+
+      />
+
+
+
+
+
+
       <section>
 
         <AccountCard />
@@ -258,13 +333,16 @@ export default function TradePage() {
 
 
 
+
       <section>
+
 
         <TradingViewChart
 
-          symbol="NASDAQ:AAPL"
+          symbol={symbol}
 
         />
+
 
       </section>
 
@@ -273,7 +351,9 @@ export default function TradePage() {
 
 
 
+
       <section>
+
 
         <OrderBook
 
@@ -281,7 +361,9 @@ export default function TradePage() {
 
         />
 
+
       </section>
+
 
 
 
@@ -327,7 +409,7 @@ export default function TradePage() {
 
               holding={{
 
-                symbol:"AAPL",
+                symbol,
 
                 quantity,
 
@@ -357,17 +439,13 @@ export default function TradePage() {
 
 
 
-      <section>
 
+      <TransactionHistory
 
-        <TransactionHistory
+        transactions={transactions}
 
-          transactions={transactions}
+      />
 
-        />
-
-
-      </section>
 
 
 
