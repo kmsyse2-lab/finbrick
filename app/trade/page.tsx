@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Header from "../components/Header";
 import TradingViewChart from "../components/TradingViewChart";
@@ -10,6 +10,8 @@ import AccountCard from "../components/AccountCard";
 import PortfolioCard from "../components/PortfolioCard";
 import StockSelector from "../components/StockSelector";
 import TransactionHistory from "../components/TransactionHistory";
+
+import { supabase } from "../../lib/supabase";
 
 
 type Transaction = {
@@ -65,8 +67,6 @@ export default function TradePage(){
 
 
 
-  // 보유 종목
-
   const [holdings,setHoldings] =
 
     useState<any[]>([]);
@@ -75,11 +75,164 @@ export default function TradePage(){
 
 
 
-  // 거래 기록
-
   const [transactions,setTransactions] =
 
     useState<Transaction[]>([]);
+
+
+
+
+
+  // DB 데이터 불러오기
+
+  useEffect(()=>{
+
+    loadData();
+
+  },[]);
+
+
+
+
+
+  const loadData = async()=>{
+
+
+    const {
+
+      data:{
+        user
+      }
+
+    } = await supabase.auth.getUser();
+
+
+
+    if(!user) return;
+
+
+
+
+
+    const profile = await supabase
+
+      .from("profiles")
+
+      .select("*")
+
+      .eq(
+
+        "id",
+
+        user.id
+
+      )
+
+      .single();
+
+
+
+
+
+    if(profile.data){
+
+
+      setBalance(
+
+        profile.data.balance
+
+      );
+
+
+    }
+
+
+
+
+
+
+
+    const holdingData = await supabase
+
+      .from("holdings")
+
+      .select("*")
+
+      .eq(
+
+        "user_id",
+
+        user.id
+
+      );
+
+
+
+
+
+    if(holdingData.data){
+
+
+      setHoldings(
+
+        holdingData.data
+
+      );
+
+
+    }
+
+
+
+
+
+
+
+    const transactionData = await supabase
+
+      .from("transactions")
+
+      .select("*")
+
+      .eq(
+
+        "user_id",
+
+        user.id
+
+      )
+
+      .order(
+
+        "created_at",
+
+        {
+
+          ascending:false
+
+        }
+
+      );
+
+
+
+
+
+    if(transactionData.data){
+
+
+      setTransactions(
+
+        transactionData.data as Transaction[]
+
+      );
+
+
+    }
+
+
+  };
+
 
 
 
@@ -99,7 +252,9 @@ export default function TradePage(){
 
     setTransactions((prev)=>[
 
+
       {
+
 
         id:Date.now(),
 
@@ -113,11 +268,15 @@ export default function TradePage(){
 
         time:new Date().toLocaleString()
 
+
       },
+
 
       ...prev
 
+
     ]);
+
 
   };
 
@@ -128,8 +287,6 @@ export default function TradePage(){
 
 
 
-
-  // 매수
 
   const handleBuy = ()=>{
 
@@ -142,11 +299,15 @@ export default function TradePage(){
 
     if(balance < cost){
 
+
       alert("잔액 부족");
+
 
       return;
 
+
     }
+
 
 
 
@@ -156,6 +317,7 @@ export default function TradePage(){
       prev=>prev-cost
 
     );
+
 
 
 
@@ -188,9 +350,13 @@ export default function TradePage(){
 
           {
 
+
             ...item,
 
+
             quantity:item.quantity+1,
+
+
 
             avg_price:
 
@@ -214,6 +380,7 @@ export default function TradePage(){
 
             )
 
+
           }
 
 
@@ -232,25 +399,34 @@ export default function TradePage(){
 
 
 
+
       return [
+
 
         ...prev,
 
+
         {
+
 
           symbol,
 
+
           quantity:1,
+
 
           avg_price:currentPrice
 
+
         }
+
 
       ];
 
 
 
     });
+
 
 
 
@@ -265,6 +441,7 @@ export default function TradePage(){
     );
 
 
+
   };
 
 
@@ -274,8 +451,6 @@ export default function TradePage(){
 
 
 
-
-  // 매도
 
   const handleSell = (
 
@@ -296,11 +471,7 @@ export default function TradePage(){
 
 
 
-    if(!target){
-
-      return;
-
-    }
+    if(!target) return;
 
 
 
@@ -327,11 +498,13 @@ export default function TradePage(){
 
 
 
+
     setBalance(
 
       prev=>prev+money
 
     );
+
 
 
 
@@ -350,20 +523,27 @@ export default function TradePage(){
 
         ?
 
+
         {
+
 
           ...item,
 
+
           quantity:item.quantity-1
+
 
         }
 
+
         :
+
 
         item
 
 
       )
+
 
       .filter(
 
@@ -378,22 +558,33 @@ export default function TradePage(){
 
 
 
+
+
+
     setTransactions((prev)=>[
+
 
 
       {
 
+
         id:Date.now(),
+
 
         symbol:sellSymbol,
 
+
         type:"SELL",
+
 
         quantity:1,
 
+
         price:sellPrice,
 
+
         time:new Date().toLocaleString()
+
 
       },
 
@@ -405,9 +596,7 @@ export default function TradePage(){
 
 
 
-
   };
-
 
 
 
@@ -426,6 +615,7 @@ export default function TradePage(){
 
 
 
+
       <section>
 
 
@@ -434,6 +624,7 @@ export default function TradePage(){
           💰 모의투자
 
         </h1>
+
 
 
         <p>
@@ -450,16 +641,16 @@ export default function TradePage(){
 
 
 
-
       <StockSelector
+
 
         symbol={symbol}
 
+
         setSymbol={setSymbol}
 
+
       />
-
-
 
 
 
@@ -473,14 +664,13 @@ export default function TradePage(){
 
 
 
-
       <TradingViewChart
+
 
         symbol={symbol}
 
+
       />
-
-
 
 
 
@@ -489,11 +679,11 @@ export default function TradePage(){
 
       <OrderBook
 
+
         price={currentPrice}
 
+
       />
-
-
 
 
 
@@ -502,15 +692,17 @@ export default function TradePage(){
 
       <TradePanel
 
+
         balance={balance}
+
 
         price={currentPrice}
 
+
         onBuy={handleBuy}
 
+
       />
-
-
 
 
 
@@ -519,13 +711,14 @@ export default function TradePage(){
 
       <PortfolioCard
 
+
         holdings={holdings}
+
 
         onSell={handleSell}
 
+
       />
-
-
 
 
 
@@ -534,10 +727,11 @@ export default function TradePage(){
 
       <TransactionHistory
 
+
         transactions={transactions}
 
-      />
 
+      />
 
 
 
@@ -555,6 +749,7 @@ export default function TradePage(){
         </h2>
 
 
+
         <h3>
 
           {balance.toLocaleString()}원
@@ -570,5 +765,6 @@ export default function TradePage(){
     </main>
 
   );
+
 
 }
