@@ -42,16 +42,12 @@ export default function Home() {
       <section>
         <h2 className="section-title">💰 모의투자</h2>
 
-        <Link
-          href="/trade"
-          style={{
-            textDecoration: "none",
-            color: "white",
-          }}
-        >
+        <Link href="/trade" className="card-link">
           <div className="card">
             <h3>가상 자산으로 투자하기</h3>
-            <p>실제 주가 데이터로 매수와 매도를 연습하세요.</p>
+            <p>
+              실제 주가 데이터 기반으로 매수와 매도를 연습하세요.
+            </p>
           </div>
         </Link>
       </section>
@@ -59,16 +55,12 @@ export default function Home() {
       <section>
         <h2 className="section-title">💬 투자 게시판</h2>
 
-        <Link
-          href="/community"
-          style={{
-            textDecoration: "none",
-            color: "white",
-          }}
-        >
+        <Link href="/community" className="card-link">
           <div className="card">
             <h3>종목 토론 참여하기</h3>
-            <p>주식 · 코인 · ETF 투자자들과 의견을 나눠보세요.</p>
+            <p>
+              주식 · 코인 · ETF 투자자들과 의견을 나눠보세요.
+            </p>
           </div>
         </Link>
       </section>
