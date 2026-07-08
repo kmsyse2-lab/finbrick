@@ -1,77 +1,196 @@
-import Link from "next/link";
+"use client";
 
-import Header from "./components/Header";
-import Hero from "./components/Hero";
-import AccountCard from "./components/AccountCard";
-import StockCard from "./components/StockCard";
-import CryptoCard from "./components/CryptoCard";
-import NewsCard from "./components/NewsCard";
-import RankingCard from "./components/RankingCard";
+import { useState } from "react";
 
-export default function Home() {
+import Header from "../components/Header";
+import TradingViewChart from "../components/TradingViewChart";
+import OrderBook from "../components/OrderBook";
+import HoldingCard from "../components/HoldingCard";
+import AccountCard from "../components/AccountCard";
+
+
+export default function TradePage() {
+
+
+  const [balance,setBalance] = useState(10000000);
+
+
+  const [holding,setHolding] = useState({
+
+    symbol:"AAPL",
+
+    quantity:10,
+
+    avg_price:180
+
+  });
+
+
+
+  const symbol = "AAPL";
+
+  const currentPrice = 185;
+
+
+
+  const handleSell = ()=>{
+
+
+    const money =
+
+      holding.quantity *
+
+      currentPrice *
+
+      1400;
+
+
+
+    setBalance(prev=>prev + money);
+
+
+
+    setHolding({
+
+      symbol:"",
+
+      quantity:0,
+
+      avg_price:0
+
+    });
+
+
+  };
+
+
+
+
+
   return (
+
     <main>
+
+
       <Header />
 
-      <Hero />
+
 
       <section>
+
+        <h1 className="section-title">
+
+          💰 모의투자
+
+        </h1>
+
+
+        <p>
+
+          실제 시장 데이터를 기반으로 투자 연습을 할 수 있습니다.
+
+        </p>
+
+
+      </section>
+
+
+
+
+
+      <section>
+
+
         <AccountCard />
+
+
       </section>
+
+
+
+
 
       <section>
-        <h2 className="section-title">📈 실시간 시장</h2>
-        <StockCard />
+
+
+        <TradingViewChart
+
+          symbol={symbol}
+
+        />
+
+
       </section>
+
+
+
+
 
       <section>
-        <h2 className="section-title">🪙 암호화폐</h2>
-        <CryptoCard />
+
+
+        <OrderBook
+
+          price={currentPrice}
+
+        />
+
+
       </section>
+
+
+
+
 
       <section>
-        <h2 className="section-title">📰 금융 뉴스</h2>
-        <NewsCard />
+
+
+        {holding.quantity > 0 && (
+
+          <HoldingCard
+
+            holding={holding}
+
+            currentPrice={currentPrice}
+
+            onSell={handleSell}
+
+          />
+
+        )}
+
+
       </section>
 
-      <section>
-        <h2 className="section-title">🏆 투자 대회 랭킹</h2>
-        <RankingCard />
+
+
+
+
+      <section className="card">
+
+
+        <h2>
+
+          💵 가상 잔고
+
+        </h2>
+
+
+
+        <h3>
+
+          {balance.toLocaleString()}원
+
+        </h3>
+
+
+
       </section>
 
-      <section>
-        <h2 className="section-title">💰 모의투자</h2>
 
-        <Link
-          href="/trade"
-          style={{
-            textDecoration: "none",
-            color: "white",
-          }}
-        >
-          <div className="card">
-            <h3>가상 자산으로 투자하기</h3>
-            <p>실제 주가 데이터로 매수와 매도를 연습하세요.</p>
-          </div>
-        </Link>
-      </section>
 
-      <section>
-        <h2 className="section-title">💬 투자 게시판</h2>
-
-        <Link
-          href="/community"
-          style={{
-            textDecoration: "none",
-            color: "white",
-          }}
-        >
-          <div className="card">
-            <h3>종목 토론 참여하기</h3>
-            <p>주식 · 코인 · ETF 투자자들과 의견을 나눠보세요.</p>
-          </div>
-        </Link>
-      </section>
     </main>
+
   );
+
 }
