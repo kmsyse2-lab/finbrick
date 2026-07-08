@@ -7,6 +7,26 @@ import TradingViewChart from "../components/TradingViewChart";
 import OrderBook from "../components/OrderBook";
 import HoldingCard from "../components/HoldingCard";
 import AccountCard from "../components/AccountCard";
+import TradePanel from "../components/TradePanel";
+import TransactionHistory from "../components/TransactionHistory";
+
+
+type Transaction = {
+
+  id:number;
+
+  symbol:string;
+
+  type:"BUY" | "SELL";
+
+  quantity:number;
+
+  price:number;
+
+  time:string;
+
+};
+
 
 
 export default function TradePage() {
@@ -15,30 +35,150 @@ export default function TradePage() {
   const [balance,setBalance] = useState(10000000);
 
 
-  const [holding,setHolding] = useState({
+  const [quantity,setQuantity] = useState(0);
 
-    symbol:"AAPL",
 
-    quantity:10,
-
-    avg_price:180
-
-  });
+  const [avgPrice,setAvgPrice] = useState(0);
 
 
 
-  const symbol = "AAPL";
+  const [transactions,setTransactions] = useState<Transaction[]>([]);
+
+
 
   const currentPrice = 185;
 
 
 
-  const handleSell = ()=>{
+
+  const addTransaction = (
+
+    type:"BUY" | "SELL",
+
+    amount:number
+
+  ) => {
+
+
+    const newTransaction:Transaction = {
+
+      id:Date.now(),
+
+      symbol:"AAPL",
+
+      type,
+
+      quantity:amount,
+
+      price:currentPrice,
+
+      time:new Date().toLocaleString()
+
+    };
+
+
+    setTransactions((prev)=>[
+
+      newTransaction,
+
+      ...prev
+
+    ]);
+
+  };
+
+
+
+
+
+
+  const handleBuy = () => {
+
+
+    const cost =
+      currentPrice *
+      1 *
+      1400;
+
+
+
+    if(balance < cost){
+
+      alert("잔액이 부족합니다.");
+
+      return;
+
+    }
+
+
+
+
+    const totalValue =
+
+      avgPrice * quantity
+
+      +
+
+      currentPrice;
+
+
+
+    const newQuantity = quantity + 1;
+
+
+
+    const newAvgPrice =
+
+      totalValue /
+
+      newQuantity;
+
+
+
+
+    setBalance(balance-cost);
+
+
+
+    setQuantity(newQuantity);
+
+
+
+    setAvgPrice(newAvgPrice);
+
+
+
+    addTransaction(
+      "BUY",
+      1
+    );
+
+
+  };
+
+
+
+
+
+
+
+  const handleSell = () => {
+
+
+    if(quantity <=0){
+
+      alert("보유 주식이 없습니다.");
+
+      return;
+
+    }
+
+
 
 
     const money =
 
-      holding.quantity *
+      quantity *
 
       currentPrice *
 
@@ -46,22 +186,30 @@ export default function TradePage() {
 
 
 
-    setBalance(prev=>prev + money);
+    setBalance(balance+money);
 
 
 
-    setHolding({
+    addTransaction(
 
-      symbol:"",
+      "SELL",
 
-      quantity:0,
+      quantity
 
-      avg_price:0
+    );
 
-    });
+
+
+    setQuantity(0);
+
+
+
+    setAvgPrice(0);
 
 
   };
+
+
 
 
 
@@ -76,6 +224,7 @@ export default function TradePage() {
 
 
 
+
       <section>
 
         <h1 className="section-title">
@@ -87,7 +236,7 @@ export default function TradePage() {
 
         <p>
 
-          실제 시장 데이터를 기반으로 투자 연습을 할 수 있습니다.
+          실제 시장 데이터를 기반으로 투자 연습을 해보세요.
 
         </p>
 
@@ -100,9 +249,7 @@ export default function TradePage() {
 
       <section>
 
-
         <AccountCard />
-
 
       </section>
 
@@ -110,15 +257,14 @@ export default function TradePage() {
 
 
 
-      <section>
 
+      <section>
 
         <TradingViewChart
 
-          symbol={symbol}
+          symbol="NASDAQ:AAPL"
 
         />
-
 
       </section>
 
@@ -126,8 +272,8 @@ export default function TradePage() {
 
 
 
-      <section>
 
+      <section>
 
         <OrderBook
 
@@ -135,8 +281,9 @@ export default function TradePage() {
 
         />
 
-
       </section>
+
+
 
 
 
@@ -145,22 +292,84 @@ export default function TradePage() {
       <section>
 
 
-        {holding.quantity > 0 && (
+        <TradePanel
 
-          <HoldingCard
+          balance={balance}
 
-            holding={holding}
+          price={currentPrice}
 
-            currentPrice={currentPrice}
+          quantity={quantity}
 
-            onSell={handleSell}
+          onBuy={handleBuy}
 
-          />
+          onSell={handleSell}
 
-        )}
+        />
 
 
       </section>
+
+
+
+
+
+
+
+      {
+        quantity > 0 && (
+
+
+          <section>
+
+
+            <HoldingCard
+
+
+              holding={{
+
+                symbol:"AAPL",
+
+                quantity,
+
+                avg_price:avgPrice
+
+              }}
+
+
+              currentPrice={currentPrice}
+
+
+              onSell={handleSell}
+
+
+            />
+
+
+          </section>
+
+
+        )
+      }
+
+
+
+
+
+
+
+      <section>
+
+
+        <TransactionHistory
+
+          transactions={transactions}
+
+        />
+
+
+      </section>
+
+
 
 
 
@@ -184,8 +393,8 @@ export default function TradePage() {
         </h3>
 
 
-
       </section>
+
 
 
 
