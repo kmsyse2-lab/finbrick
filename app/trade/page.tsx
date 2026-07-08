@@ -1,519 +1,77 @@
-"use client";
-
-
-import { useEffect,useState } from "react";
-
-import { supabase } from "@/lib/supabase";
-
-import Header from "../components/Header";
-
-import TradingViewChart from "../components/TradingViewChart";
-
-import OrderBook from "../components/OrderBook";
-
-
-
-
-const stocks=[
-
-
-  {
-    name:"NVIDIA",
-    symbol:"NASDAQ:NVDA"
-  },
-
-
-  {
-    name:"Tesla",
-    symbol:"NASDAQ:TSLA"
-  },
-
-
-  {
-    name:"Apple",
-    symbol:"NASDAQ:AAPL"
-  },
-
-
-  {
-    name:"Microsoft",
-    symbol:"NASDAQ:MSFT"
-  }
-
-
-];
-
-
-
-
-
-
-export default function TradePage(){
-
-
-
-const [selected,setSelected]=useState(stocks[0]);
-
-const [price,setPrice]=useState(0);
-
-const [balance,setBalance]=useState(0);
-
-const [quantity,setQuantity]=useState(1);
-
-
-
-
-
-
-
-useEffect(()=>{
-
-
-load();
-
-
-},[selected]);
-
-
-
-
-
-
-
-async function load(){
-
-
-
-const {
-
-data:{
-user
-
-}
-
-}=await supabase.auth.getUser();
-
-
-
-
-if(!user)return;
-
-
-
-
-
-
-
-const {data:account}=await supabase
-
-.from("accounts")
-
-.select("*")
-
-.eq(
-
-"user_id",
-
-user.id
-
-)
-
-.single();
-
-
-
-
-
-
-if(account){
-
-setBalance(account.balance);
-
-}
-
-
-
-
-
-
-
-const res=await fetch("/api/stocks");
-
-
-const data=await res.json();
-
-
-
-
-
-const stock=data.find(
-
-(item:any)=>
-
-item.symbol===selected.symbol.split(":")[1]
-
-);
-
-
-
-
-
-if(stock){
-
-setPrice(stock.price);
-
-}
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-async function buy(){
-
-
-const {
-
-data:{
-user
-
-}
-
-}=await supabase.auth.getUser();
-
-
-
-
-if(!user)return;
-
-
-
-
-
-
-const cost=price*quantity*1400;
-
-
-
-
-
-
-if(cost>balance){
-
-alert("잔액 부족");
-
-return;
-
-}
-
-
-
-
-
-
-
-await supabase
-
-.from("accounts")
-
-.update({
-
-balance:balance-cost
-
-})
-
-.eq(
-
-"user_id",
-
-user.id
-
-);
-
-
-
-
-
-
-
-
-await supabase
-
-.from("holdings")
-
-.insert({
-
-user_id:user.id,
-
-symbol:selected.symbol,
-
-quantity,
-
-avg_price:price
-
-});
-
-
-
-
-
-
-
-
-await supabase
-
-.from("trades")
-
-.insert({
-
-user_id:user.id,
-
-symbol:selected.symbol,
-
-type:"BUY",
-
-quantity,
-
-price
-
-});
-
-
-
-
-
-
-
-alert("매수 완료");
-
-
-
-load();
-
-
-
-}
-
-
-
-
-
-
-
-
-
-return(
-
-
-<main>
-
-
-<Header />
-
-
-
-
-
-<section className="hero">
-
-
-<h1>
-
-💰 모의투자 거래소
-
-</h1>
-
-
-<p>
-
-실제 시장 데이터 기반 투자
-
-</p>
-
-
-</section>
-
-
-
-
-
-
-
-<section className="card">
-
-
-<h2>
-
-종목 선택
-
-</h2>
-
-
-
-
-{
-
-stocks.map((stock)=>(
-
-
-<button
-
-key={stock.symbol}
-
-onClick={()=>setSelected(stock)}
-
->
-
-{stock.name}
-
-</button>
-
-
-))
-
-}
-
-
-
-</section>
-
-
-
-
-
-
-
-<section className="card">
-
-
-<h2>
-
-📊 {selected.name}
-
-</h2>
-
-
-
-<TradingViewChart
-
-symbol={selected.symbol}
-
-/>
-
-
-</section>
-
-
-
-
-
-
-
-<OrderBook
-
-price={price}
-
-/>
-
-
-
-
-
-
-
-
-<section className="card">
-
-
-<h2>
-
-현재가
-
-</h2>
-
-
-
-<h1>
-
-${price}
-
-</h1>
-
-
-
-
-<p>
-
-내 자산
-
-</p>
-
-
-<h2>
-
-₩{balance.toLocaleString()}
-
-</h2>
-
-
-
-
-
-
-
-<input
-
-type="number"
-
-min="1"
-
-value={quantity}
-
-onChange={(e)=>
-
-setQuantity(Number(e.target.value))
-
-}
-
-/>
-
-
-
-
-
-
-<button
-
-onClick={buy}
-
->
-
-📈 매수
-
-</button>
-
-
-
-</section>
-
-
-
-
-
-
-</main>
-
-
-);
-
-
+import Link from "next/link";
+
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import AccountCard from "./components/AccountCard";
+import StockCard from "./components/StockCard";
+import CryptoCard from "./components/CryptoCard";
+import NewsCard from "./components/NewsCard";
+import RankingCard from "./components/RankingCard";
+
+export default function Home() {
+  return (
+    <main>
+      <Header />
+
+      <Hero />
+
+      <section>
+        <AccountCard />
+      </section>
+
+      <section>
+        <h2 className="section-title">📈 실시간 시장</h2>
+        <StockCard />
+      </section>
+
+      <section>
+        <h2 className="section-title">🪙 암호화폐</h2>
+        <CryptoCard />
+      </section>
+
+      <section>
+        <h2 className="section-title">📰 금융 뉴스</h2>
+        <NewsCard />
+      </section>
+
+      <section>
+        <h2 className="section-title">🏆 투자 대회 랭킹</h2>
+        <RankingCard />
+      </section>
+
+      <section>
+        <h2 className="section-title">💰 모의투자</h2>
+
+        <Link
+          href="/trade"
+          style={{
+            textDecoration: "none",
+            color: "white",
+          }}
+        >
+          <div className="card">
+            <h3>가상 자산으로 투자하기</h3>
+            <p>실제 주가 데이터로 매수와 매도를 연습하세요.</p>
+          </div>
+        </Link>
+      </section>
+
+      <section>
+        <h2 className="section-title">💬 투자 게시판</h2>
+
+        <Link
+          href="/community"
+          style={{
+            textDecoration: "none",
+            color: "white",
+          }}
+        >
+          <div className="card">
+            <h3>종목 토론 참여하기</h3>
+            <p>주식 · 코인 · ETF 투자자들과 의견을 나눠보세요.</p>
+          </div>
+        </Link>
+      </section>
+    </main>
+  );
 }
