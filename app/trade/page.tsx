@@ -5,11 +5,11 @@ import { useState } from "react";
 import Header from "../components/Header";
 import TradingViewChart from "../components/TradingViewChart";
 import OrderBook from "../components/OrderBook";
-import HoldingCard from "../components/HoldingCard";
-import AccountCard from "../components/AccountCard";
 import TradePanel from "../components/TradePanel";
-import TransactionHistory from "../components/TransactionHistory";
+import AccountCard from "../components/AccountCard";
+import PortfolioCard from "../components/PortfolioCard";
 import StockSelector from "../components/StockSelector";
+import TransactionHistory from "../components/TransactionHistory";
 
 
 type Transaction = {
@@ -34,11 +34,13 @@ export default function TradePage(){
 
 
   const [balance,setBalance] =
+
     useState(10000000);
 
 
 
   const [symbol,setSymbol] =
+
     useState("NASDAQ:AAPL");
 
 
@@ -56,23 +58,30 @@ export default function TradePage(){
 
 
   const currentPrice =
+
     prices[symbol];
 
 
 
 
-  const [quantity,setQuantity] =
-    useState(0);
+
+  // 보유 종목
+
+  const [holdings,setHoldings] =
+
+    useState<any[]>([]);
 
 
 
-  const [avgPrice,setAvgPrice] =
-    useState(0);
 
 
+  // 거래 기록
 
   const [transactions,setTransactions] =
+
     useState<Transaction[]>([]);
+
+
 
 
 
@@ -81,39 +90,34 @@ export default function TradePage(){
 
   const addTransaction = (
 
-    type:"BUY" | "SELL",
+    type:"BUY"|"SELL",
 
-    amount:number
+    quantity:number
 
   )=>{
 
 
-    const data:Transaction={
-
-      id:Date.now(),
-
-      symbol,
-
-      type,
-
-      quantity:amount,
-
-      price:currentPrice,
-
-      time:new Date().toLocaleString()
-
-    };
-
-
-
     setTransactions((prev)=>[
 
-      data,
+      {
+
+        id:Date.now(),
+
+        symbol,
+
+        type,
+
+        quantity,
+
+        price:currentPrice,
+
+        time:new Date().toLocaleString()
+
+      },
 
       ...prev
 
     ]);
-
 
   };
 
@@ -124,16 +128,15 @@ export default function TradePage(){
 
 
 
+
+  // 매수
+
   const handleBuy = ()=>{
 
 
     const cost =
 
-      currentPrice *
-
-      1 *
-
-      1400;
+      currentPrice * 1400;
 
 
 
@@ -148,54 +151,107 @@ export default function TradePage(){
 
 
 
-    const total =
-
-      avgPrice *
-
-      quantity
-
-      +
-
-      currentPrice;
-
-
-
-    const newQuantity =
-
-      quantity + 1;
-
-
-
-    const newAvg =
-
-      total /
-
-      newQuantity;
-
-
-
-
     setBalance(
 
-      balance - cost
+      prev=>prev-cost
 
     );
 
 
 
-    setQuantity(
-
-      newQuantity
-
-    );
 
 
+    setHoldings((prev)=>{
 
-    setAvgPrice(
 
-      newAvg
+      const exist =
 
-    );
+        prev.find(
+
+          item=>item.symbol===symbol
+
+        );
+
+
+
+
+
+      if(exist){
+
+
+        return prev.map((item)=>
+
+
+          item.symbol===symbol
+
+          ?
+
+          {
+
+            ...item,
+
+            quantity:item.quantity+1,
+
+            avg_price:
+
+            (
+
+              item.avg_price *
+
+              item.quantity
+
+              +
+
+              currentPrice
+
+            )
+
+            /
+
+            (
+
+              item.quantity+1
+
+            )
+
+          }
+
+
+          :
+
+          item
+
+
+        );
+
+
+      }
+
+
+
+
+
+
+      return [
+
+        ...prev,
+
+        {
+
+          symbol,
+
+          quantity:1,
+
+          avg_price:currentPrice
+
+        }
+
+      ];
+
+
+
+    });
+
 
 
 
@@ -218,12 +274,29 @@ export default function TradePage(){
 
 
 
-  const handleSell = ()=>{
+
+  // 매도
+
+  const handleSell = (
+
+    sellSymbol:string
+
+  )=>{
 
 
-    if(quantity <= 0){
+    const target =
 
-      alert("보유 주식 없음");
+      holdings.find(
+
+        item=>item.symbol===sellSymbol
+
+      );
+
+
+
+
+
+    if(!target){
 
       return;
 
@@ -232,43 +305,110 @@ export default function TradePage(){
 
 
 
+
+    const sellPrice =
+
+      prices[sellSymbol];
+
+
+
+
+
     const money =
 
-      quantity *
+      target.quantity *
 
-      currentPrice *
+      sellPrice *
 
       1400;
 
 
 
 
+
+
     setBalance(
 
-      balance + money
+      prev=>prev+money
 
     );
 
 
 
-    addTransaction(
 
-      "SELL",
 
-      quantity
+
+    setHoldings((prev)=>
+
+
+      prev
+
+      .map((item)=>
+
+
+        item.symbol===sellSymbol
+
+        ?
+
+        {
+
+          ...item,
+
+          quantity:item.quantity-1
+
+        }
+
+        :
+
+        item
+
+
+      )
+
+      .filter(
+
+        item=>item.quantity>0
+
+      )
+
 
     );
 
 
 
-    setQuantity(0);
 
 
+    setTransactions((prev)=>[
 
-    setAvgPrice(0);
+
+      {
+
+        id:Date.now(),
+
+        symbol:sellSymbol,
+
+        type:"SELL",
+
+        quantity:1,
+
+        price:sellPrice,
+
+        time:new Date().toLocaleString()
+
+      },
+
+
+      ...prev
+
+
+    ]);
+
+
 
 
   };
+
+
 
 
 
@@ -286,8 +426,8 @@ export default function TradePage(){
 
 
 
-
       <section>
+
 
         <h1 className="section-title">
 
@@ -309,6 +449,8 @@ export default function TradePage(){
 
 
 
+
+
       <StockSelector
 
         symbol={symbol}
@@ -322,11 +464,9 @@ export default function TradePage(){
 
 
 
-      <section>
 
-        <AccountCard />
 
-      </section>
+      <AccountCard />
 
 
 
@@ -334,104 +474,56 @@ export default function TradePage(){
 
 
 
-      <section>
+      <TradingViewChart
 
+        symbol={symbol}
 
-        <TradingViewChart
+      />
 
-          symbol={symbol}
 
-        />
 
 
-      </section>
 
 
 
 
+      <OrderBook
 
+        price={currentPrice}
 
+      />
 
-      <section>
 
 
-        <OrderBook
 
-          price={currentPrice}
 
-        />
 
 
-      </section>
 
+      <TradePanel
 
+        balance={balance}
 
+        price={currentPrice}
 
+        onBuy={handleBuy}
 
+      />
 
 
 
-      <section>
 
 
-        <TradePanel
 
-          balance={balance}
 
-          price={currentPrice}
 
-          quantity={quantity}
+      <PortfolioCard
 
-          onBuy={handleBuy}
+        holdings={holdings}
 
-          onSell={handleSell}
+        onSell={handleSell}
 
-        />
-
-
-      </section>
-
-
-
-
-
-
-
-      {
-        quantity > 0 && (
-
-
-          <section>
-
-
-            <HoldingCard
-
-
-              holding={{
-
-                symbol,
-
-                quantity,
-
-                avg_price:avgPrice
-
-              }}
-
-
-              currentPrice={currentPrice}
-
-
-              onSell={handleSell}
-
-
-            />
-
-
-          </section>
-
-
-        )
-      }
+      />
 
 
 
@@ -458,10 +550,9 @@ export default function TradePage(){
 
         <h2>
 
-          💵 가상 잔고
+          💵 현금 잔고
 
         </h2>
-
 
 
         <h3>

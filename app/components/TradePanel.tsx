@@ -1,70 +1,90 @@
 "use client";
 
 type Props = {
-  balance: number;
-  price: number;
-  quantity: number;
-  onBuy: () => void;
-  onSell: () => void;
+
+  balance:number;
+
+  price:number;
+
+  onBuy:()=>void;
+
 };
 
 
+
 export default function TradePanel({
+
   balance,
+
   price,
-  quantity,
-  onBuy,
-  onSell,
-}: Props) {
+
+  onBuy
+
+}:Props){
 
 
   return (
+
     <section className="card">
 
+
       <h2>
-        📈 주문
+
+        📈 주문하기
+
       </h2>
 
 
+
       <p>
-        현재가 : ${price}
+
+        현재 가격
+
       </p>
 
 
-      <p>
-        보유 수량 : {quantity}주
-      </p>
+      <h3>
+
+        ${price}
+
+      </h3>
+
+
+
 
 
       <p>
-        예수금 : {balance.toLocaleString()}원
+
+        주문 가능 금액
+
       </p>
 
 
+      <h3>
 
-      <div style={{
-        display:"flex",
-        gap:"10px"
-      }}>
+        {balance.toLocaleString()}원
 
-
-        <button
-          onClick={onBuy}
-        >
-          🟢 매수
-        </button>
+      </h3>
 
 
-        <button
-          onClick={onSell}
-        >
-          🔴 매도
-        </button>
 
 
-      </div>
+
+      <button
+
+        onClick={onBuy}
+
+      >
+
+        🟢 1주 매수
+
+      </button>
+
 
 
     </section>
+
   );
+
+
 }
